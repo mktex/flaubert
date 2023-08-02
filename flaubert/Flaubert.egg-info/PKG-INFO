@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: Flaubert
+Version: 0.1
+Summary: Python Module und Skripte für ML
+Author-email: mktech <9596910+mktex@users.noreply.github.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: MIT License
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown

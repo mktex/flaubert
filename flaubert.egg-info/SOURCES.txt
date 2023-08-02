@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+flaubert/__init__.py
+flaubert/einstellungen.py
+flaubert.egg-info/PKG-INFO
+flaubert.egg-info/SOURCES.txt
+flaubert.egg-info/dependency_links.txt
+flaubert.egg-info/top_level.txt
