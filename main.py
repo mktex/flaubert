@@ -72,7 +72,7 @@ xdg.show_summary_scatterplot_farbe_kateg(xdata, 'age', 'creatinine', 'death')
 
 # einstellung ID und Zielvariable
 id_col = "id"
-target_col = "death"
+target_col = "T"
 zielvariable_dict = {
     "Yes": 1, "No": 0
 }

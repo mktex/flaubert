@@ -61,7 +61,7 @@ class FeatureWichtigket():
         self.dfcheck = self.dfcheck.fillna(self.dfcheck.mean())
         # Zeige eine Stichprobe
         print(self.dfcheck.sample(4).transpose())
-        input("...")
+        # input("...")
         return self
 
     def _setup_kateg_zielvariable(self):
@@ -97,7 +97,7 @@ class FeatureWichtigket():
                      useOrdered=["g0", "g1"], balancedN={"g0": None, "g1": None},
                      test_size=0.7, max_depth=4, min_samples_split=5, min_samples_leaf=5, criterion="entropy",
                      print_dtstruktur=True)
-        input("...")
+        # input("...")
         return self
 
     def _random_forrest_classifier(self):
@@ -127,7 +127,7 @@ class FeatureWichtigket():
         pprint(self.unwichtige_features)
         print("\n[x] Wichtige Features:")
         pprint(self.wichtige_features)
-        input("...")
+        # input("...")
         return self
 
     def _zeige_vis_clf_resultat(self):

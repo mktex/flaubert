@@ -1,4 +1,4 @@
-
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn import tree
 from time import time
@@ -7,6 +7,7 @@ from functools import reduce
 
 from flaubert.statistik import stat_op
 from flaubert.eda import dfgestalt
+from flaubert import einstellungen
 
 features_train = None
 features_test = None
@@ -217,6 +218,15 @@ def export_dt_vis(xfeature_names, fname_dt="tree_model_all_data"):
     global data_ordner
     global output_py_code_datei
     xclass_names = list(map(lambda x: str(x), clf.classes_))
+    fig = plt.Figure(figsize=einstellungen.FIGSIZE_BREIT, dpi=einstellungen.FIGDPI_HOCH)
+    _ = tree.plot_tree(clf,
+                       feature_names=all_features,
+                       class_names=xclass_names,
+                       filled=True, rounded=True)
+
+    fig.savefig(f'{data_ordner}/{fname_dt}.png', dpi=einstellungen.FIGDPI_NORM)
+    """
+    # Variante 1:
     f = open(dt_datei_output, 'w')
     tree.export_graphviz(clf, out_file=f,
                          feature_names=all_features,
@@ -225,9 +235,9 @@ def export_dt_vis(xfeature_names, fname_dt="tree_model_all_data"):
     )
     f.close()
     # diese Variante ist farbiger..
-    os.system(f"dot -Tpng {data_ordner}/testout.dot -o {data_ordner}/{fname_dt}.png")
-    """
-    # ohne Farbe..
+    os.system(f"dot -Tpng {data_ordner}/testout.dot -o {data_ordner}/{fname_dt}.png")    
+    
+    # Variante 2:
     dot_data = StringIO()
     tree.export_graphviz(clf, out_file=dot_data, node_ids=True)
     graph = pydot.graph_from_dot_data(dot_data.getvalue())
