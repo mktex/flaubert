@@ -91,7 +91,7 @@ class FeatureWichtigkeit():
 
     def _setup_multikolinearitaet(self):
         # Entferne Multikolinearität
-        Xnmk = df_redux.reduktion_multikolinearitaet(self.X, threshold_corr=0.95, waehle_mit_korr_target_feature=None)
+        Xnmk = df_redux.reduktion_multikolinearitaet(self.X, threshold_corr=0.95)
         # Überschreibt X
         self.X = Xnmk
         # Führe die RFC noch einmal
@@ -110,7 +110,8 @@ class FeatureWichtigkeit():
                      xlambdaF=lambda x: 'g1' if x == check_warum_gruppe else 'g0',
                      useOrdered=["g0", "g1"], balancedN={"g0": None, "g1": None},
                      test_size=0.7, max_depth=4, min_samples_split=5, min_samples_leaf=5, criterion="entropy",
-                     showStuff=True)
+                     print_stats=True, print_dtstruktur=True, dt_visualisierung=False, fname_dt=None
+                     )
             self.rfc_model[check_warum_gruppe] = dt.clf
         return self
 
