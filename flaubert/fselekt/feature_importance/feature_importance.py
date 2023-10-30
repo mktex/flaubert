@@ -282,7 +282,7 @@ class Simulate:
 
     @staticmethod
     def plot_simulation(d, **kwargs):
-        fig, ax = plt.subplots(figsize=(14, 8))
+        fig, ax = plt.subplots(figsize=einstellungen.FIGSIZE_BREIT, dpi=einstellungen.FIGDPI_HOCH)
         sbn.barplot(y='feature_simuliert', x='sim_wert', data=d,
                     palette="light:b", ax=ax)
         ax.axvline(d['baseline'].values[0], color='grey', linestyle='--', linewidth=2)
