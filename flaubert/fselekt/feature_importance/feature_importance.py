@@ -91,7 +91,8 @@ class FeatureWichtigkeit():
 
     def _setup_multikolinearitaet(self):
         # Entferne Multikolinearität
-        Xnmk = df_redux.reduktion_multikolinearitaet(self.X, threshold_corr=0.95)
+        Xnmk = df_redux.reduktion_multikolinearitaet(self.X, threshold_corr=0.95,
+                                                     target_col=self.zielvariable, id_col=self.id_col)
         # Überschreibt X
         self.X = Xnmk
         # Führe die RFC noch einmal
