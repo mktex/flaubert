@@ -66,6 +66,7 @@ class FeatureWichtigkeit():
             ._streu_von_weizen() \
             ._zeige_vis_clf_resultat() \
             ._check_wichtigkeit_features_mit_regressor_sim() \
+            ._do_sim_input_var() \
             ._check_multikolinearitaet()
 
     def _setup_non_nullen(self):
@@ -178,14 +179,6 @@ class FeatureWichtigkeit():
         print("\nAccuracy:", accuracy)
 
     def _check_wichtigkeit_features_mit_regressor_sim(self):
-        def get_samples_p_df(nn_model_data):
-            r = 0.5 * nn_model_data.std()
-            r = pd.DataFrame(list(zip(r.index.values, r.values)), columns=["feature", "wert_0.5_sigma"])
-            for i in np.arange(1.0, 3.5, 0.1):
-                r[f"wert_{i}_sigma"] = i * nn_model_data.std().values
-            r = r.set_index("feature").transpose().reset_index(drop=True)
-            return r
-
         X_norm, xmin, xmax = tnorm.normalisierung_mehrdimensional(self.X[self.wichtige_features].values,
                                                                   a=0, b=1)
         self.nn_model_data = pd.DataFrame(X_norm, columns=self.wichtige_features)
@@ -204,13 +197,23 @@ class FeatureWichtigkeit():
                                model_typ="MLPClassifier",
                                labels_zuordnung=self.clf.classes_)
 
+        return self
+
+    def _do_sim_input_var(self):
+        def get_samples_p_df(nn_model_data):
+            r = 0.5 * nn_model_data.std()
+            r = pd.DataFrame(list(zip(r.index.values, r.values)), columns=["feature", "wert_0.5_sigma"])
+            for i in np.arange(1.0, 3.5, 0.1):
+                r[f"wert_{i}_sigma"] = i * nn_model_data.std().values
+            r = r.set_index("feature").transpose().reset_index(drop=True)
+            return r
+
         plist_df = get_samples_p_df(self.nn_model_data)
         nsamples = int(self.p_sample_simulation * self.nn_model_data.shape[0])
         datensim = self.nn_model_data.iloc[pd.Series(range(self.nn_model_data.shape[0])).sample(nsamples).values]
         S = Simulate(obs=datensim, var=self.wichtige_features)
-        d = S.simulate_increase(model=xNNS, plist_df=plist_df)
+        d = S.simulate_increase(model=self.nn_model, plist_df=plist_df)
         S.plot_simulation(d, title='')
-
         return self
 
     def _check_multikolinearitaet(self):
