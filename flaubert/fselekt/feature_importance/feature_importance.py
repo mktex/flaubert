@@ -156,15 +156,17 @@ class FeatureWichtigkeit():
         ax1.set_yticks(self.tree_indices[:self.topk])
         ax1.set_yticklabels(self.X.columns[self.tree_importance_sorted_idx][-self.topk:])
         ax1.set_ylim((0, len(self.clf.feature_importances_[-self.topk:])))
+        ax1.xaxis.set_tick_params(labelsize=7)
+        ax1.yaxis.set_tick_params(labelsize=7)
+        ax1.set_xlabel("Normalized average reduction in Gini impurity", fontsize=7)
         ax2.boxplot(
             self.res_importances.importances[self.perm_sorted_idx[-self.topk:]].T,
             vert=False,
             labels=self.X.columns[self.perm_sorted_idx[-self.topk:]],
         )
-        ax1.xaxis.set_tick_params(labelsize=7)
-        ax1.yaxis.set_tick_params(labelsize=7)
         ax2.xaxis.set_tick_params(labelsize=7)
         ax2.yaxis.set_tick_params(labelsize=7)
+        ax2.set_xlabel("Average accuracy improvement", fontsize=7)
         fig.tight_layout()
         plt.show()
         return self

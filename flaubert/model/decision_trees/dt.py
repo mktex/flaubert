@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from sklearn import tree
 from time import time
@@ -8,6 +9,9 @@ from functools import reduce
 from flaubert.statistik import stat_op
 from flaubert.eda import dfgestalt
 from flaubert import einstellungen
+
+# print ohne gedöns
+np.set_printoptions(suppress=True)
 
 features_train = None
 features_test = None
@@ -195,16 +199,72 @@ def print_decision_tree(clf, feature_names=None, offset_unit='\t'):
     return xres
 
 
-def write_out(xres, feature_names):
-    global output_py_code_datei, features_train
-    feature_names = list(map(lambda x: toVar(x), feature_names))
-    param_liste = reduce(lambda a, b: a + ', ' + b, [x.replace("_", "") for x in feature_names])
-    xr = 'def xr(' + param_liste + '):\n'
+def dt_export_code(dict_clf, dt_features, dt_model_pfad):
+    for nbin in dict_clf.keys():
+        quellcode = dict_clf[nbin]
+        model_bin = f"prevclose_bin_{nbin}"
+        dt_model_pfad = f"./quellcodegen/{model_bin}.py"
+        write_out(quellcode, feature_names=dt_features, dt_model_pfad=dt_model_pfad)
+    """
+    model_bin = f"xbin_{ist_nbin}"
+    dtm = importlib.import_module(".", package=f"quellcodegen.{model_bin}")
+    reload(dtm)
+    prognosen = xdata[dt_features].fillna(value=xdata[dt_features].mean()) \
+                                  .apply(lambda datensatz: dtm.xr(*datensatz),
+                                         axis=1)    
+    """
+
+
+def get_dt_code(clf, feature_names=None, offset_unit='\t'):
+    global xres
+
+    left = clf.tree_.children_left
+    right = clf.tree_.children_right
+    threshold = clf.tree_.threshold
+    value = clf.tree_.value
+
+    xres = ''
+    if feature_names is None:
+        features = ['f%d' % i for i in clf.tree_.feature]
+    else:
+        features = [feature_names[i] for i in clf.tree_.feature]
+
+    def recurse_python(left, right, threshold, features, node, depth=0, dt_pfad=""):
+        global xres
+        offset = offset_unit * depth
+        if threshold[node] != -2:
+            bedingung = toVar(features[node]) + " <= " + str(round(threshold[node], 4))
+            xres += offset + "if " + bedingung + ":" + "\n"
+            if left[node] != -1:
+                recurse_python(left, right, threshold, features, left[node], depth + 1,
+                               dt_pfad + " # " + bedingung)
+            xres += offset + "else:" + "\n"
+            if right[node] != -1:
+                recurse_python(left, right, threshold, features, right[node], depth + 1,
+                               dt_pfad + " # " + bedingung.replace("<=", ">"))
+            xres += offset + "\t" + "\n"
+        else:
+            xstr = str(value[node]).replace('.', '., ')
+            xstr = ''.join(xstr.split())
+            xstr = xstr.replace(".,", ", ")
+            xres += offset + f"xresult = [{xstr}, '{dt_pfad}']\n"
+
+    recurse_python(left, right, threshold, features, 0, 0)
+
+    return xres
+
+
+def write_out(xres, feature_names, dt_model_pfad=None):
+    global output_py_code_datei
+    if dt_model_pfad is None: dt_model_pfad = output_py_code_datei
+    feature_names = reduce(lambda a, b: a + ', ' + b, ['f' + str(x) for x in range(len(feature_names))])
+    feature_names_str = ", ".join([toVar(x.replace("_", "")) for x in feature_names])
+    xr = 'def xr(' + feature_names_str + '):\n\n'
     xr += reduce(lambda a, b: a + "\n" + b,
                  ['\t' + y for y in [x for x in xres.split('\n') if x.strip() != '']]
-                 )
+    )
     xr += "\n\treturn xresult"
-    with open(output_py_code_datei, 'w') as f:
+    with open(dt_model_pfad, 'w') as f:
         f.write(xr)
 
 
