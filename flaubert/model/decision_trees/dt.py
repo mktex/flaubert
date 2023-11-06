@@ -254,10 +254,11 @@ def get_dt_code(clf, feature_names=None, offset_unit='\t'):
     return xres
 
 
-def write_out(xres, feature_names, dt_model_pfad=None):
+def write_out(xres, feature_names=None, dt_model_pfad=None):
     global output_py_code_datei
     if dt_model_pfad is None: dt_model_pfad = output_py_code_datei
-    feature_names = reduce(lambda a, b: a + ', ' + b, ['f' + str(x) for x in range(len(feature_names))])
+    if feature_names is None:
+        feature_names = reduce(lambda a, b: a + ', ' + b, ['f' + str(x) for x in range(len(feature_names))])
     feature_names_str = ", ".join([toVar(x.replace("_", "")) for x in feature_names])
     xr = 'def xr(' + feature_names_str + '):\n\n'
     xr += reduce(lambda a, b: a + "\n" + b,

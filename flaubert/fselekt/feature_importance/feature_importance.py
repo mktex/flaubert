@@ -138,7 +138,10 @@ class FeatureWichtigkeit():
 
     def _streu_von_weizen(self):
         # Resultierende Spalten sind:
-        self.wichtige_features = list(self.X.columns[self.tree_importance_sorted_idx][-self.topk:])
+        features_rfc_imp = self.X.columns[self.tree_importance_sorted_idx][-self.topk:]
+        features_perm_imp = self.X.columns[self.perm_sorted_idx][-self.topk:]
+        features_diff = list(filter(lambda feature: feature not in features_rfc_imp, features_perm_imp))
+        self.wichtige_features = list(features_rfc_imp) + features_diff
         self.wichtige_features.sort()
         self.unwichtige_features = list(self.X.columns[self.tree_importance_sorted_idx][:-self.topk])
         self.unwichtige_features.sort()
