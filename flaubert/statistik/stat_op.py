@@ -700,3 +700,38 @@ def statistik_test(dfinput, xcol="Gender", werta="Male", wertb="Female",
     print(('[x] Manueller Berechnung z-Score: {:.6f}'.format(z)))
     print(('[x] Z-score statsmodels: {:.6f}'.format(zScore)))
     print(('[x] Statsmodels p-Wert: {:.6f}'.format(pval)))
+
+
+def information_gain():
+    df = pd.read_csv("./data/ml-bugs.csv")
+    kateg_feature = "Species"
+    entropie_funk = lambda xp: -xp * np.log2(xp)
+    gesamtentropie_funk = lambda xdf, xfeature: np.sum([entropie_funk(xdf[xdf[xfeature] == w].shape[0] / xdf.shape[0])
+                                                        for w in xdf[xfeature].unique()])
+    H = gesamtentropie_funk(df, "Species")
+    gesamtentropie_funk(df[df['Color'] == 'Brown'], "Species")
+    gesamtentropie_funk(df[df['Color'] == 'Blue'], "Species")
+    gesamtentropie_funk(df[df['Color'] == 'Green'], "Species")
+    gesamtentropie_funk(df[df['Length (mm)'] < 17], "Species")
+
+    if True:
+        # recs_split1, recs_split2 = df[df['Length (mm)'] < 17], df[df['Length (mm)'] >= 17]
+        recs_split1, recs_split2 = df[df['Color'] == 'Brown'], df[df['Color'] != 'Brown']
+        H1 = (recs_split1.shape[0] / df.shape[0]) * gesamtentropie_funk(recs_split1, "Species")
+        H2 = (recs_split2.shape[0] / df.shape[0]) * gesamtentropie_funk(recs_split2, "Species")
+        info_gain = H - (H1 + H2)
+        print(info_gain)
+
+
+def adaboos_weight(clf, X, y):
+    """ Given a classification model calculates the weight of the model based on accuracy """
+    acc = accuracy_score(clf.predict(X), y)
+    return np.log(acc / (1 - acc))
+
+
+
+
+
+
+
+

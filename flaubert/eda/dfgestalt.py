@@ -209,3 +209,33 @@ def targetFeatureSplit(data, posLabel):
             target.append(item[-1])
             features.append(item[:-1])
     return target, np.array(features)
+
+
+def from_nans_to_nones(df_input):
+    df = df_input.copy() \
+                 .astype(object)
+    res = df.where(pd.notnull(df), None)
+    return res
+
+
+def simple_dummy_encoding(xdata_in, kateg_feature, typ_encoding="01", kateg_werte_sortiert=None):
+    """
+        Typ Encoding: (a) '01' Nullen und Einsen, (b) '-101' SAS Variante mit {0, 1, -1}
+        Baseline wenn kateg_werte_sortiert nicht Null, dann kateg_werte_sortiert[0]
+        Zur Erinnerung:
+            in (a) vergleiche mit "baseline", also das was rausbleibt,
+            in (b) vergleiche mit "Durchschnitt"
+        In beiden Fälle die Quantifizierung der Baseline und Durchschnitt wird mit der Intercept getan
+    """
+    gencode = lambda xs, wert: [1 if wert == w else 0 for w in xs]
+    xdata = xdata_in.copy().reset_index(drop=True)
+    if kateg_werte_sortiert is not None:
+        xs = kateg_werte_sortiert
+    else:
+        xs = list(xdata[kateg_feature].unique())
+    named_dummy_features = [f"{kateg_feature}_{w}" for w in xs]
+    codes = xdfmap(xdata, lambda r: gencode(xs, r[kateg_feature])[1:], [kateg_feature])
+    if typ_encoding == '-101':
+        codes = [[-1] * len(w) if np.sum(w) == 0 else w for w in codes]
+    merge_in = pd.DataFrame(codes, columns=named_dummy_features[1:])
+    return pd.merge(xdata, merge_in, left_index=True, right_index=True, how="left")

@@ -166,3 +166,43 @@ def plot_dt_result(predicted, targets, class_labels=None):
     plt.tight_layout()
     plt.show()
     return model_cm
+
+
+def plot_decision_boundary(model=None, X=None, y=None):
+    from matplotlib.colors import ListedColormap
+    from sklearn.datasets import make_classification
+    from sklearn.tree import DecisionTreeClassifier, plot_tree
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score
+
+    if model is None:
+        X, y = make_classification(n_samples=100, n_features=2, n_redundant=0,
+                                   n_informative=2, n_clusters_per_class=1,
+                                   class_sep=2.0, random_state=0)
+        model = DecisionTreeClassifier(max_depth=3)
+        model.fit(X, y)
+
+    h = 0.02
+    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    # Entscheidungsgrenzen
+    fig, ax = plt.subplots(figsize=(8, 6))
+    title = ""
+    ax.contourf(xx, yy, Z, cmap=ListedColormap(['#FFBBBB', '#BBBBFF']), alpha=0.4)
+    scatter = ax.scatter(X[:, 0], X[:, 1], c=y, cmap='bwr', edgecolor='k', alpha=0.8)
+    ax.set_title(title)
+    ax.set_xlabel("Feature 1")
+    ax.set_ylabel("Feature 2")
+    plt.show()
+
+    # Struktur
+    plt.figure(figsize=(10, 6))
+    plot_tree(model, filled=True, feature_names=["Feature 1", "Feature 2"])
+    plt.title("Tree Structure")
+    plt.show()
+

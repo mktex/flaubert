@@ -1,4 +1,3 @@
-
 from importlib import reload
 from functools import reduce
 import matplotlib.pyplot as plt
@@ -908,6 +907,10 @@ def showPlotFile(xfName="", prfx="./xpydm.zip/data/"):
 
 
 def show_heatmap(xdf_input, target_col, xselekt_cols):
+    """
+        _, ax = plt.subplots(figsize=(9, 7))
+        sns.heatmap(diabetes.corr(), annot=True, cmap="YlGnBu", ax=ax);
+    """
     f, ax = plt.subplots(figsize=einstellungen.FIGSIZE_BREIT)
     _ = sbn.heatmap(xdf_input[[target_col] + xselekt_cols].corr())
     # fig, axs = plt.subplots(1, figsize=(16, 8))
@@ -955,6 +958,7 @@ def show_gridhist(xdf, xby=(5, 4)):
 def do_pairplot(xdf, xselekt):
     """
         # Pairplot für enge Auswahl Features
+        Geht auch mit: sns.pairplot(diabetes, hue="Outcome");
     """
     from matplotlib.artist import setp
     fig, ax = plt.subplots(1, figsize=einstellungen.FIGSIZE_BREIT)
@@ -1181,4 +1185,71 @@ def simpel_xyystar_plot(X, Y, Ystar, titel_str=""):
         _ax.grid(visible=True)
     plt.title(f"{titel_str}")
     plt.tight_layout()
+    plt.show()
+
+
+def do_simple_barplot(dfinput, feature):
+    y = dfinput[feature].value_counts(sort=False)
+    base_color = sbn.color_palette()[0]
+    sbn.countplot(data=dfinput, x=feature, color=base_color, order=y.index)
+    plt.xticks(rotation=90)
+
+
+def draw_learning_curves(X, y, estimator, num_trainings):
+    from sklearn.model_selection import learning_curve
+
+    def randomize(X, Y):
+        permutation = np.random.permutation(Y.shape[0])
+        X2 = X[permutation, :]
+        Y2 = Y[permutation]
+        return X2, Y2
+
+    X2, y2 = randomize(X, y)
+    train_sizes, train_scores, test_scores = learning_curve(estimator, X2, y2, cv=None, n_jobs=1,
+                                                            train_sizes=np.linspace(.1, 1.0, num_trainings))
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_std = np.std(test_scores, axis=1)
+    plt.grid()
+    plt.title("Learning Curves")
+    plt.xlabel("Training examples")
+    plt.ylabel("Score")
+    plt.plot(train_scores_mean, 'o-', color="g", label="Training score")
+    plt.plot(test_scores_mean, 'o-', color="y", label="Cross-validation score")
+    plt.legend(loc="best")
+    plt.show()
+
+
+def plot_model_binary_classif_decision_boundary(X, y, clf):
+    # Zeige Boundary für ein CLF Model auf 2 Dimensionen
+    plt.scatter(X[np.argwhere(y == 0).flatten(), 0],
+                X[np.argwhere(y == 0).flatten(), 1], s=50, color='blue', edgecolor='k')
+    plt.scatter(X[np.argwhere(y == 1).flatten(), 0],
+                X[np.argwhere(y == 1).flatten(), 1], s=50, color='red', edgecolor='k')
+
+    plt.xlim(-2.05, 2.05)
+    plt.ylim(-2.05, 2.05)
+    plt.grid(False)
+    plt.tick_params(
+        axis='x',
+        which='both',
+        bottom='off',
+        top='off')
+
+    r = np.linspace(-2.1, 2.1, 300)
+    s, t = np.meshgrid(r, r)
+    s = np.reshape(s, (np.size(s), 1))
+    t = np.reshape(t, (np.size(t), 1))
+    h = np.concatenate((s, t), 1)
+
+    z = clf.predict(h)
+
+    s.shape = (np.size(r), np.size(r))
+    t.shape = (np.size(r), np.size(r))
+    z.shape = (np.size(r), np.size(r))
+
+    plt.contourf(s, t, z, colors=['blue', 'red'], alpha=0.2, levels=range(-1, 2))
+    if len(np.unique(z)) > 1:
+        plt.contour(s, t, z, colors='k', linewidths=2)
     plt.show()
