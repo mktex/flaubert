@@ -8,9 +8,18 @@ from flaubert.model.neural_networks import xnn
 from flaubert.statistik import stat_op
 from flaubert.utils import zahlen_checks
 
+
 ersatz_nullwerte_durch_mean = lambda xdf_in: xdf_in.fillna(xdf_in.mean().iloc[0])
 ersatz_nullwerte_durch_median = lambda xdf_in: xdf_in.fillna(xdf_in.median().iloc[0])
 ersatz_nullwerte_durch_mode = lambda xdf_in: xdf_in.fillna(xdf_in.mode().iloc[0])
+
+
+def safe_turn2num(x):
+    try:
+        return float(x)
+    except:
+        pass
+    return x
 
 
 def ersetze_alle_na_werte_mit_none(xdt):

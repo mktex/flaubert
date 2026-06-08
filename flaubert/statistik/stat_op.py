@@ -729,6 +729,18 @@ def adaboos_weight(clf, X, y):
     return np.log(acc / (1 - acc))
 
 
+def get_diff_mean_by_bootstrap(df1, df2, feature, nsample_pr=0.2, nzyklen=1000):
+    xmeans = []
+    nk1 = int(nsample_pr * df1[feature].shape[0])
+    nk2 = int(nsample_pr * df2[feature].shape[0])
+    for k in range(nzyklen):
+        xdiff = df1[feature].dropna().sample(nk1).mean() - df2[feature].dropna().sample(nk2).mean()
+        xmeans.append(xdiff)
+    return xmeans
+
+
+
+
 
 
 

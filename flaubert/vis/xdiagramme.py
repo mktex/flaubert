@@ -1253,3 +1253,37 @@ def plot_model_binary_classif_decision_boundary(X, y, clf):
     if len(np.unique(z)) > 1:
         plt.contour(s, t, z, colors='k', linewidths=2)
     plt.show()
+
+
+def show_hypothesis(means, h0_mean=70, null_direction="greater"):
+    """ - just a graphical way of running hypothesis test
+        - means are the bootstrapping samples
+    """
+    null_vals = np.random.normal(h0_mean, np.std(means), means.shape[0])
+    ci95pr_nulls = np.round(ci95pr_funk(null_vals), 1)
+    ci95pr_means = np.round(ci95pr_funk(means), 1)
+    means = pd.Series(means)
+    sign_direction = ''
+    if null_direction == "greater":
+        pr_gtnull = np.round(means[means > h0_mean].shape[0] / means.shape[0], 3)
+        sign_direction = f"percentage x > {h0_mean:.2f}"
+    elif null_direction == "less":
+        pr_gtnull = np.round(means[means < h0_mean].shape[0] / means.shape[0], 3)
+        sign_direction = f"percentage x < {h0_mean:.2f}"
+    else:
+        pr_left = np.round(means[means < h0_mean].shape[0] / means.shape[0], 3)
+        pr_right = np.round(means[means > h0_mean].shape[0] / means.shape[0], 3)
+        pr_gtnull = pr_left + pr_right
+        sign_direction = f"percentage alternative x"
+    plt.hist(null_vals, bins=45, label="H0", alpha=0.5)
+    plt.hist(means, bins=45, label="data", alpha=0.5)
+    plt.axvline(x=ci95pr_nulls[0], color='r', linewidth=1)
+    plt.axvline(x=ci95pr_nulls[1], color='r', linewidth=1)
+    plt.axvline(x=ci95pr_means[0], color='r', linewidth=1)
+    plt.axvline(x=ci95pr_means[1], color='r', linewidth=1)
+    plt.axvline(x=h0_mean, color='gray', linestyle="--", linewidth=1)
+    plt.legend()
+    plt.title(f"CI 95% H0 is {ci95pr_nulls} \n CI 95% bootstrap method is {ci95pr_means} " + \
+              f" \n {sign_direction}: {pr_gtnull:.3f}")
+    plt.tight_layout()
+    plt.show()

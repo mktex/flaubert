@@ -239,3 +239,10 @@ def simple_dummy_encoding(xdata_in, kateg_feature, typ_encoding="01", kateg_wert
         codes = [[-1] * len(w) if np.sum(w) == 0 else w for w in codes]
     merge_in = pd.DataFrame(codes, columns=named_dummy_features[1:])
     return pd.merge(xdata, merge_in, left_index=True, right_index=True, how="left")
+
+
+def sort_features(_df):
+    features_sorted = _df.columns.tolist()
+    features_sorted.sort()
+    _df = _df[features_sorted]
+    return _df

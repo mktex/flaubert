@@ -62,6 +62,35 @@ def get_liste_features_mit_nullen(df, num_cols, target_col):
     return res_cols
 
 
+def auflistung_werte_in_features(df, upto=100):
+    for feature in df.columns:
+        werte = df[feature].unique()
+        print(feature, werte[:upto], f".. ({len(werte) - upto} weitere)" if len(df[feature].unique()) > upto else "")
+
+
+def get_nulls_rows_stat(_df):
+    count_nulls_in_row = lambda r: np.sum(list(map(lambda w: w is None, r)))
+    ncols = _df.shape[1]
+    _nulls_records = list(map(lambda r: [count_nulls_in_row(r), count_nulls_in_row(r) / ncols],
+                              _df.values))
+    output = pd.DataFrame(_nulls_records, columns=['nullen', 'percentage'])
+    output['record_id'] = list(range(_df.shape[0]))
+    output = output.sort_values(by='percentage', ascending=False).reset_index(drop=True)
+    return output[['record_id', 'nullen', 'percentage']]
+
+
+def get_nulls_df_stat(_df, return_all=True):
+    N = _df.shape[0]
+    nullend = []
+    for feature in _df.columns:
+        xnullen = _df[pd.isnull(_df[feature])].shape[0]
+        nullend.append([feature, xnullen, xnullen / N])
+    output = pd.DataFrame(nullend, columns=['feature', 'nullen', 'percentage']) \
+        .sort_values(by='percentage', ascending=False)
+    if not return_all: output = output.query("percentage > 0").reset_index(drop=True)
+    return output
+
+
 def kateg_werte_liste(xdf_input, xcol, sep=None):
     """ Ergibt die Liste der Werte in kategorialer Variable
         Bleibt der sep None, dann sind die Werte nichts anderes als ein set(xL)
@@ -86,7 +115,7 @@ def frequenz_werte(xdf_input, group_by_feature="CousinEducation",
     xres = xs.groupby(group_by_feature, as_index=True).count()
     xres = xres.sort_values(by=id_col, ascending=False)
     if prozente:
-        xres[id_col] = [t / xdf_input.shape[0] for t in xres['id'].values.tolist()]
+        xres[id_col] = [t / xdf_input.shape[0] for t in xres[id_col].values.tolist()]
     return xres
 
 
