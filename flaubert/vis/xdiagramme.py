@@ -1259,6 +1259,7 @@ def show_hypothesis(means, h0_mean=70, null_direction="greater"):
     """ - just a graphical way of running hypothesis test
         - means are the bootstrapping samples
     """
+    ci95pr_funk = lambda xs: [np.percentile(xs, 2.5), np.percentile(xs, 97.5)]
     null_vals = np.random.normal(h0_mean, np.std(means), means.shape[0])
     ci95pr_nulls = np.round(ci95pr_funk(null_vals), 1)
     ci95pr_means = np.round(ci95pr_funk(means), 1)
