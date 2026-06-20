@@ -7,3 +7,4 @@
 /data/
 /flaubert.egg-info/
 /dist/
+*.pth

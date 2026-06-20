@@ -24,6 +24,7 @@ from flaubert.ersatz import dfersatz
 from flaubert.utils import utilpy, daten_laden as xdl
 from flaubert.vis import xdiagramme
 from flaubert.statistik import stat_op
+from flaubert.model.outliers import isoforest
 
 safe_turn2num = dfersatz.safe_turn2num
 from_nans_to_nones = dfgestalt.from_nans_to_nones
@@ -259,13 +260,6 @@ class GruppenVergleicher:
             plt.show()
             print()
 
-    def remove_outliers_by_isolation_forest(self, _df):
-        iso_forest = IsolationForest(contamination='auto')
-        iso_forest.fit(_df)
-        _df['outlier'] = iso_forest.predict(_df)
-        _df = _df[_df['outlier'] >= 0]
-        _df = _df[list(filter(lambda x: x != 'outlier', _df.columns))]
-        return _df, iso_forest
 
     def info_nullen(self, df):
         features_mit_nullen = get_nulls_df_stat(df, False)
@@ -293,7 +287,7 @@ class GruppenVergleicher:
             return fehler_output
 
         _featureset = _dfinput.columns
-        _dfinput, _iso_forest_a = self.remove_outliers_by_isolation_forest(_dfinput)
+        _dfinput, _iso_forest_a = isoforest.remove_outliers_by_isolation_forest(_dfinput)
 
         if _xscaler is None: _xscaler = preprocessing.RobustScaler().fit(_dfinput)
         X = _xscaler.transform(_dfinput)
@@ -312,7 +306,7 @@ class GruppenVergleicher:
 
         x_reduced = pd.DataFrame(X_reduced, columns=[f"PC{w}" for w in range(self.ncomponents)])
         x_reduced.index = _dfinput.index
-        x_reduced, _iso_forest_b = self.remove_outliers_by_isolation_forest(x_reduced)
+        x_reduced, _iso_forest_b = isoforest.remove_outliers_by_isolation_forest(x_reduced)
         _dfinput = _dfinput.loc[x_reduced.index]
         if self.do_plots: self.show_pairgrid_firstk_pcs(x_reduced, color_by_cluster=False)
 

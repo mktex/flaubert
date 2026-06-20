@@ -13,6 +13,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 
 from flaubert import einstellungen
 from flaubert.statistik import xcorrs
+from flaubert.eda import dbeschreiben
 
 
 def update(handle, orig):
@@ -400,6 +401,31 @@ def show_counts_kateg(xdfIn, xcol, xcolTarget):
     diagramme_zum_ordner_weiterleiten(None, VERWENDE_DIR, fname="xdg_" + "show_counts_kateg")
 
 
+def vis_grid_histograms(df, continuous_features):
+    fig, axes = plt.subplots(2, 3, figsize=(15, 8))
+    axes = axes.ravel()
+    for idx, feature in enumerate(continuous_features):
+        axes[idx].hist(df[feature], bins=30, edgecolor='black', alpha=0.7)
+        axes[idx].set_xlabel(feature, fontsize=11)
+        axes[idx].set_ylabel('Frequency', fontsize=11)
+        axes[idx].set_title(f'Distribution of {feature}', fontsize=12)
+        axes[idx].grid(True, alpha=0.3)
+    fig.delaxes(axes[5])
+    plt.tight_layout()
+    plt.show()
+
+
+def vis_corr_as_barplot(df, target):
+    correlations = df.corr()[target]
+    fig, ax = plt.subplots(figsize=(10, 8))
+    correlations[1:].plot(kind='barh', ax=ax)
+    ax.set_xlabel('Koeffizienten', fontsize=12)
+    ax.set_title(f'Korrelationen zum {target}', fontsize=14, fontweight='bold')
+    ax.axvline(x=0, color='black', linestyle='--', linewidth=0.8)
+    plt.tight_layout()
+    plt.show()
+
+
 def show_corrplot(xdfInput, zeigeUeberschriften=False):
     """ zeige die Korrelationsdiagramme (nur numerisch) """
     xcorr = xdfInput.corr()
@@ -417,6 +443,18 @@ def show_corrplot(xdfInput, zeigeUeberschriften=False):
     # fig, axs = plt.subplots(1, figsize=(16, 8))
     diagramme_zum_ordner_weiterleiten(None, VERWENDE_DIR, fname="xdg_" + "show_corrplot")
 
+
+def show_corrplot_as_bars(dfnum, target):
+    correlations = dfnum.corr()[target]
+    print("[x] Korrelationen:")
+    print(correlations)
+    fig, ax = plt.subplots(figsize=(10, 8))
+    correlations[1:].plot(kind='barh', ax=ax)  # Exclude self-correlation
+    ax.set_xlabel('Correlation Coefficient', fontsize=12)
+    ax.set_title('Feature Correlations with Diabetes Status', fontsize=14, fontweight='bold')
+    ax.axvline(x=0, color='black', linestyle='--', linewidth=0.8)
+    plt.tight_layout()
+    plt.show()
 
 def show_scatter_kateg(xdfInput, xcol, ycol, xkateg, xlim=None, ylim=None, xtitle=None):
     """
@@ -1184,6 +1222,19 @@ def simpel_xyystar_plot(X, Y, Ystar, titel_str=""):
         _ax.set_ylabel("Y (blau), Y* (rot)")
         _ax.grid(visible=True)
     plt.title(f"{titel_str}")
+    plt.tight_layout()
+    plt.show()
+
+
+def vis_binary_barplot(df, target):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    target_distribution = dbeschreiben.frequenz_werte(df, group_by_feature=target, prozente=False)
+    target_distribution.reset_index(inplace=True)
+    target_distribution.plot(kind='bar', ax=ax, color=['#2ecc71', '#e74c3c'])
+    ax.set_xlabel('Target Status', fontsize=12)
+    ax.set_ylabel('Anzahl', fontsize=12)
+    ax.set_title('Aufteilung der Zielvariable', fontsize=14, fontweight='bold')
+    ax.set_xticklabels(['No Diabetes', 'Diabetes'], rotation=0)
     plt.tight_layout()
     plt.show()
 

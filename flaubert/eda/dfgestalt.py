@@ -1,6 +1,13 @@
 import numpy as np
 import pandas as pd
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+
 from flaubert.eda import dbeschreiben
 
 
@@ -246,3 +253,50 @@ def sort_features(_df):
     features_sorted.sort()
     _df = _df[features_sorted]
     return _df
+
+
+def do_enhance_features(df, target):
+    X = df[list(filter(lambda x: x != target, df.columns))]
+    y = df[target]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    # voraussagen
+    pipe = Pipeline([('scaler', RobustScaler()), ('lr', LinearRegression())])
+    reg = pipe.fit(X_train, y_train)
+    # poly-features
+    poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
+    df_new = poly.fit_transform(X)
+    df_new = pd.DataFrame(df_new, columns=[f"feat_{k}" for k in range(df_new.shape[1])])
+    df_new['reg'] = reg.predict(X)
+    df_new[target] = y
+    # rfc für gewichtungen
+    clf_rfc = RandomForestClassifier(n_estimators=10, random_state=42)
+    clf_rfc.fit(
+        df_new[list(filter(lambda x: x != target, df_new.columns))],
+        df_new[target]
+    )
+    xplain_most = pd.DataFrame(list(zip(list(filter(lambda x: x != target, df_new.columns)),
+                                    clf_rfc.feature_importances_)),
+                               columns=['feature', 'score']).sort_values(by="score", ascending=False)
+    keep_features = xplain_most[xplain_most.score >= xplain_most.score.quantile(0.2)]
+    df = df_new[keep_features['feature'].tolist() + [target]]
+    return df
+
+
+def prepare_training_datasets(df, target, test_size=0.4):
+    X = df[list(filter(lambda x: x != target, df.columns))]
+    y = df[target]
+    X_train, _X_test, y_train, _y_test = train_test_split(X, y, test_size=test_size, stratify=y, random_state=42)
+    X_val, X_test, y_val, y_test = train_test_split(_X_test, _y_test, test_size=0.5, stratify=_y_test, random_state=42)
+    scaler = RobustScaler().fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    X_val_scaled = scaler.transform(X_val)
+    X_test_scaled = scaler.transform(X_test)
+    clf_rfc = RandomForestClassifier(n_estimators=10, random_state=42)
+    random_ids = pd.Series(range(X_train_scaled.shape[0])).sample(np.min([X_train_scaled.shape[0], 10000]))
+    clf_rfc.fit(X_train_scaled[random_ids,:], y_train.values[random_ids])
+    xplain_most = pd.DataFrame(list(zip(list(filter(lambda x: x != target, df.columns)),
+                                        clf_rfc.feature_importances_)),
+                               columns=['feature', 'score']).sort_values(by="score", ascending=False)
+    return X_train_scaled, y_train, X_val_scaled, y_val, X_test_scaled, y_test, xplain_most
+
+
