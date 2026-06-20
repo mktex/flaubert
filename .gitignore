@@ -8,3 +8,6 @@
 /flaubert.egg-info/
 /dist/
 *.pth
+build/**
+build/
+*.whl
